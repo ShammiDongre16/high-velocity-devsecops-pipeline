@@ -24,25 +24,15 @@ jobs:
         echo "Running application unit testing sequences..."
         echo "Source code state verified successfully!"
 
-    # Gate 2: Static Application Security Testing (SAST via Native CLI)
-    - name: Setup Java Environment for Scanner
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'temurin'
-        java-version: '17'
-
-    - name: Download and Run SonarScanner Native CLI
+    # Gate 2: Static Application Security Testing (SAST via Official Runner)
+    - name: Run Official SonarQube Analysis Scan
+      uses: sonarsource/sonar-scanner-action@v3
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-      run: |
-        mkdir -p /opt/sonar-scanner
-        curl -sSLo sonar-scanner.zip https://sonarsource.com
-        unzip -q sonar-scanner.zip
-        ./sonar-scanner-6.2.1.4610-linux-x64/bin/sonar-scanner \
-          -Dsonar.host.url=$SONAR_HOST_URL \
-          -Dsonar.token=$SONAR_TOKEN \
-          -Dsonar.projectKey=high-velocity-pipeline \
+      with:
+        args: >
+          -Dsonar.projectKey=high-velocity-pipeline
           -Dsonar.sources=.
 
     # Gate 3: Package, Containerize, and Scan Image Layers
@@ -57,3 +47,4 @@ jobs:
         exit-code: '1'
         ignore-unfixed: true
         severity: 'CRITICAL'
+
