@@ -24,9 +24,9 @@ jobs:
         echo "Running application unit testing sequences..."
         echo "Source code state verified successfully!"
 
-    # Gate 2: Static Application Security Testing (SAST via Official Runner)
+    # Gate 2: Static Application Security Testing (SAST)
     - name: Run Official SonarQube Analysis Scan
-      uses: sonarsource/sonar-scanner-action@v3
+      uses: sonarsource/sonarqube-scan-action@v3
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
@@ -40,11 +40,10 @@ jobs:
       run: docker build -t $REGISTRY_NAME/$DOCKER_IMAGE:${{ github.sha }} .
 
     - name: Run Trivy Vulnerability Scan Inspector
-      uses: aquasecurity/trivy-action@master
+      uses: aquasecurity/trivy-action@v2.9.0
       with:
         image-ref: 'docker.io/secure-app:${{ github.sha }}'
         format: 'table'
         exit-code: '1'
         ignore-unfixed: true
         severity: 'CRITICAL'
-
