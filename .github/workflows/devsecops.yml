@@ -8,13 +8,14 @@ on:
 env:
   DOCKER_IMAGE: secure-app
   REGISTRY_NAME: ghcr.io
+  LOWERCASE_OWNER: shammidongre16 # Forcing the repository path to remain lowercase
 
 jobs:
   devsecops-delivery:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write # Crucial permission allowing the pipeline to upload images securely
+      packages: write
     steps:
     - name: Fetch Repository Source
       uses: actions/checkout@v4
@@ -39,24 +40,24 @@ jobs:
 
     # Gate 3: Package, Containerize, and Scan Image Layers
     - name: Build Code Container Runtime Layers
-      run: docker build -t $REGISTRY_NAME/${{ github.repository_owner }}/$DOCKER_IMAGE:${{ github.sha }} .
+      run: docker build -t $REGISTRY_NAME/$LOWERCASE_OWNER/$DOCKER_IMAGE:${{ github.sha }} .
 
     - name: Run Trivy Vulnerability Scan Inspector
       uses: aquasecurity/trivy-action@v0.36.0
       with:
-        image-ref: 'ghcr.io/${{ github.repository_owner }}/secure-app:${{ github.sha }}'
+        image-ref: 'ghcr.io/shammidongre16/secure-app:${{ github.sha }}'
         format: 'table'
         exit-code: '1'
         ignore-unfixed: true
         severity: 'CRITICAL'
 
-    # Gate 4: Trusted Distribution Artifact Storage (Native Integration)
+    # Gate 4: Trusted Distribution Artifact Storage
     - name: Authenticate to GitHub Container Registry
       uses: docker/login-action@v3
       with:
         registry: ghcr.io
         username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }} # Automatically provided natively by GitHub Actions!
+        password: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Push Secure Immutable Image to Registry
-      run: docker push $REGISTRY_NAME/${{ github.repository_owner }}/$DOCKER_IMAGE:${{ github.sha }}
+      run: docker push $REGISTRY_NAME/$LOWERCASE_OWNER/$DOCKER_IMAGE:${{ github.sha }}
