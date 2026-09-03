@@ -3,6 +3,7 @@ name: DevSecOps CI Pipeline
 on:
   push:
     branches: [ main ]
+  workflow_dispatch: # This adds a manual "Run workflow" button to the UI!
 
 env:
   DOCKER_IMAGE: secure-app
@@ -31,9 +32,7 @@ jobs:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
       with:
-        args: >
-          -Dsonar.projectKey=high-velocity-pipeline
-          -Dsonar.sources=.
+        args: -Dsonar.projectKey=high-velocity-pipeline -Dsonar.sources=.
 
     # Gate 3: Package, Containerize, and Scan Image Layers
     - name: Build Code Container Runtime Layers
