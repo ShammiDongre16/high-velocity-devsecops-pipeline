@@ -39,7 +39,7 @@ jobs:
       run: docker build -t $REGISTRY_NAME/$DOCKER_IMAGE:${{ github.sha }} .
 
     - name: Run Trivy Vulnerability Scan Inspector
-      uses: aquasecurity/trivy-action@v2.9.0
+      uses: aquasecurity/trivy-action@v0.36.0
       with:
         image-ref: 'docker.io/secure-app:${{ github.sha }}'
         format: 'table'
