@@ -4,26 +4,43 @@ on:
   push:
     branches: [ main ]
 
+env:
+  DOCKER_IMAGE: secure-app
+  REGISTRY_NAME: docker.io # Fallback standard registry configuration placeholder
+
 jobs:
-  security-pipeline:
+  devsecops-delivery:
     runs-on: ubuntu-latest
     steps:
     - name: Fetch Repository Source
       uses: actions/checkout@v4
       with:
-        fetch-depth: 0 # Required by SonarQube for accurate file analysis
+        fetch-depth: 0 # Required by SonarQube for accurate file tracking analytics
 
-    # Gate 1: Code Linting & Unit Testing Mock Stage
-    - name: Run Quality Gate Checks
+    # Gate 1: Code Linting & Unit Testing Mock Verification
+    - name: Execute Code Linting & Verification
       run: |
-        echo "Running Code Linters..."
-        echo "Running Application Unit Tests..."
-        echo "Quality gates passed successfully!"
+        echo "Running structural syntax checks..."
+        echo "Running application unit testing sequences..."
+        echo "Source code state verified successfully!"
 
     # Gate 2: Static Application Security Testing (SAST)
-    - name: SonarQube Code Scan
+    - name: Execute SonarQube Code Scan Analysis
       uses: sonarsource/sonarqube-scan-action@v3
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+    # Gate 3: Package, Containerize, and Scan Image Layers
+    - name: Build Code Container Runtime Layers
+      run: docker build -t $REGISTRY_NAME/$DOCKER_IMAGE:${{ github.sha }} .
+
+    - name: Run Trivy Vulnerability Scan Inspector
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: 'docker.io/secure-app:${{ github.sha }}'
+        format: 'table'
+        exit-code: '1' # Fails the build completely if critical exploits are discovered
+        ignore-unfixed: true
+        severity: 'CRITICAL'
 
